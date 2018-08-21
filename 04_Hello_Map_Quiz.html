@@ -5,18 +5,42 @@ API Course, Lesson 1 -->
  <!-- styles put here, but you can include a CSS file and reference it instead! -->
    <style type="text/css">
      html, body { height: 100%; margin: 0; padding: 0; }
-     #map { height: 100%; }
+     #map {
+       bottom:0px;
+       height: 100%;
+       left: 362px;
+       position: absolute;
+       right: 0px;
+      }
+
+      .options-box {
+        background: #fff;
+        border: 1px solid #999;
+        border-radius; 3px;
+        height: 100%;
+        line-height: 35px;
+        padding: 10px 10px 30px 10px;
+        text-align: left;
+        width: 340px;
+      }
    </style>
  </head>
  <body>
-
-   <div id="map"></div>
+   <div class="contaner">
+     <div class="options-box">
+       <h1>Find Your New NYC Home</h1>
+       <div>
+         <input id="show-listings" type="button" value="Show Listings">
+         <input id="hide-listings" type="button" value="Hide Listings">
+       </div>
+     </div>
+     <div id="map"></div>
    <script>
 
      var map;
 
      // Create a new blank array for all the listing markers.
-     //var markers = [];
+     var markers = [];
 
      function initMap() {
 
@@ -24,20 +48,79 @@ API Course, Lesson 1 -->
          center: {lat: 40.7413549, lng: -73.9980244},
          zoom: 13
        });
-       var tribeca = {lat: 40.719526, lng: -74.0089934};
-       var marker = new google.maps.Marker({
-         position: tribeca,
-         map: map,
-         title: 'First Marker!'
-       });
-       var infowindow = new google.maps.InfoWindow({
-         content: 'Do you ever feel like an InfoWindow, floating through the wind,' + ' ready to start again?'
 
-       });
-       marker.addListener('click', function(){
-         infowindow.open(map, marker);
-       });
-     }
+       // Thses are the real estate listings that will be shown to the user.
+       // Normally we'd have these in a database instead.
+
+       var locations = [
+         {title: 'Park Ave Penthouse', location: {lat: 40.7713024, lng: -73.9632393}},
+         {title: 'Chelsea Loft', location: {lat: 40.7444883, lng: -73.9949465}},
+         {title: 'Union Square Open Floor Plan', location: {lat: 40.7347062, lng: -73.9895759}},
+         {title: 'East Village Hip Studio', location: {lat: 40.7281777, lng: -73.984377}},
+       ];
+
+      var largeInfowindow = new google.maps.InfoWindow();
+
+      var bounds = new google.maps.LatLngBounds();
+      // The following group uses the location array to Create an array of markers on initialize.
+      for (var i = 0; i < locations.length; i++) {
+        // Get the postion from the location array.
+        var position = locations[i].location;
+        var title = locations[i].title;
+        // Crate a marker per location, and put into markers array.
+        var marker = new google.maps.Marker({
+          map: map,
+          position: position,
+          title: title,
+          animation: google.maps.Animation.DROP,
+          id: i
+        });
+        // Push the marker to our array of markers.
+        markers.push(marker);
+
+        //Extend the boundaries of the map for each marker.
+        bounds.extend(marker.position);
+        // Create an onclick event to open an infowindow at each marker.
+        marker.addListener('click', function(){
+          populateInfoWindow(this, largeInfowindow);
+        });
+
+      }
+
+      //map.fitBounds(bounds);
+
+      document.getElementById('show-listings').addEventListener('click', showListings);
+      document.getElementById('hide-listings').addEventListener('click', hideListings);
+
+      }
+      function populateInfoWindow(marker, infowindow) {
+        if (infowindow.marker != marker){
+          infowindow.marker = marker;
+          infowindow.setContent('<div>' + marker.title + '</div>');
+          infowindow.open(map, marker);
+
+          infowindow.addListener('closeclick', function() {
+            infowindow.setMarker(null);
+          });
+        }
+      }
+
+      function showListings(){
+        var bounds = new google.maps.LatLngBounds();
+
+        for (var i = 0; i < markers.length; i++) {
+          markers[i].setMap(map);
+          bounds.extend(markers[i].position);
+
+        }
+        map.fitBounds(bounds);
+      }
+
+      function hideListings() {
+        for (var i = 0; i < markers.length; i++) {
+          markers[i].setMap(null);
+        }
+      }
    </script>
 
    <script async defer
